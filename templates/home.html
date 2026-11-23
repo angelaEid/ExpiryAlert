@@ -1,0 +1,51 @@
+
+{% extends "base.html" %}
+
+{% block title %}ExpiryAlert - Home{% endblock %}
+
+{% block content %}
+
+<section class="home-intro">
+    <h1>Welcome to ExpiryAlert!</h1>
+
+    <p class="subtitle">
+        A restaurant food inventory management system
+        designed to monitor stock quantities, track
+        expiration dates, and identify food products
+        approaching expiration.
+    </p>
+</section>
+
+<div class="feature-grid">
+
+    <a class="feature-card"
+       href="{{ url_for('inventory.inventory') }}">
+
+        <h3>Inventory Management</h3>
+
+        <p>
+            View food inventory batches, remaining
+            quantities, expiration dates, and
+            freshness statuses.
+        </p>
+
+        <span class="feature-link">View Inventory</span>
+    </a>
+
+    <a class="feature-card"
+       href="{{ url_for('alerts.alerts') }}">
+
+        <h3>Expiration Alerts</h3>
+
+        <p>
+            Monitor expiration warnings and
+            notification statuses to help reduce
+            food waste.
+        </p>
+
+        <span class="feature-link">View Alerts</span>
+    </a>
+
+</div>
+
+{% endblock %}

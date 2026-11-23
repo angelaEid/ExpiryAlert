@@ -1,0 +1,84 @@
+
+{% extends "base.html" %}
+
+{% block title %}ExpiryAlert - Expiration Alerts{% endblock %}
+
+{% block content %}
+
+<h1>Expiration Alerts</h1>
+
+<p class="subtitle">
+    Monitor food expiration alerts
+    and notification statuses.
+</p>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Alert ID</th>
+                <th>Batch ID</th>
+                <th>Product</th>
+                <th>Expiration Date</th>
+                <th>Days Left</th>
+                <th>Alert Type</th>
+                <th>Alert Date</th>
+                <th>Notification Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for alert in alerts %}
+            <tr>
+                <td>{{ alert.alert_id }}</td>
+                <td>{{ alert.batch_id }}</td>
+                <td>{{ alert.product_name }}</td>
+                <td>{{ alert.expiration_date }}</td>
+
+                <td>
+                    {% if alert.days_until_expiration < 0 %}
+                        Expired
+                    {% else %}
+                        {{ alert.days_until_expiration }}
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if alert.days_until_expiration < 0 %}
+                        <span class="status expired">
+                            {{ alert.alert_type }}
+                        </span>
+                    {% else %}
+                        <span class="status warning">
+                            {{ alert.alert_type }}
+                        </span>
+                    {% endif %}
+                </td>
+
+                <td>{{ alert.alert_date }}</td>
+
+                <td>
+                    {% if alert.notification_status == 'pending' %}
+                        <span class="status warning">
+                            Pending
+                        </span>
+                    {% else %}
+                        <span class="status safe">
+                            {{ alert.notification_status }}
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+
+            {% else %}
+            <tr>
+                <td colspan="8" class="empty-message">
+                    No expiration alerts found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,249 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 40px 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f9;
+    color: #243b53;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding-bottom: 25px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.brand h2 {
+    margin: 0 0 8px;
+    color: #243b53;
+}
+
+.brand p {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.navigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.navigation a {
+    text-decoration: none;
+    background: #243b53;
+    color: white;
+    padding: 11px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.navigation a:hover,
+.navigation a:focus-visible {
+    background: #365574;
+}
+
+h1 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #243b53;
+}
+
+.subtitle {
+    color: #555;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th {
+    background: #243b53;
+    color: white;
+    padding: 14px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+td {
+    padding: 14px;
+    border-bottom: 1px solid #ddd;
+}
+
+tbody tr:hover {
+    background: #f8fafc;
+}
+
+.status {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.safe {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.warning {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.expired {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 25px;
+    color: #777;
+}
+
+.footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    color: #777;
+    font-size: 13px;
+}
+
+.home-intro {
+    margin-bottom: 30px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.feature-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: #f8fafc;
+    padding: 25px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    transition: box-shadow 0.2s;
+}
+
+.feature-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.feature-card h3 {
+    margin-top: 0;
+    color: #243b53;
+}
+
+.feature-card p {
+    color: #555;
+    line-height: 1.6;
+}
+
+.feature-link {
+    color: #243b53;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+
+    .container {
+        padding: 18px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .site-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ADD INVENTORY BATCH FORM */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #243b53;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: white;
+    color: #243b53;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #243b53;
+}
+
+.form-button {
+    background-color: #243b53;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.form-button:hover {
+    background-color: #334e68;
+}

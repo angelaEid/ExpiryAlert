@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}ExpiryAlert - Edit Inventory Batch{% endblock %}
+
+{% block content %}
+
+<h1>Edit Inventory Batch #{{ batch.batch_id }}</h1>
+
+<p class="subtitle">
+    Update the storage location, expiration date,
+    and remaining quantity of this inventory batch.
+</p>
+
+<form method="POST">
+
+    <div class="form-group">
+        <label for="storage_id">Storage Location</label>
+
+        <select name="storage_id" id="storage_id" required>
+            {% for location in storage_locations %}
+            <option value="{{ location.storage_id }}"
+                {% if location.storage_id == batch.storage_id %}
+                    selected
+                {% endif %}>
+                {{ location.storage_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="expiration_date">Expiration Date</label>
+
+        <input
+            type="date"
+            id="expiration_date"
+            name="expiration_date"
+            value="{{ batch.expiration_date }}"
+            min="{{ batch.received_date }}"
+            required
+        >
+    </div>
+
+    <div class="form-group">
+        <label for="remaining_quantity">Remaining Quantity</label>
+
+        <input
+            type="number"
+            id="remaining_quantity"
+            name="remaining_quantity"
+            min="0"
+            max="{{ batch.initial_quantity }}"
+            step="0.01"
+            value="{{ batch.remaining_quantity }}"
+            required
+        >
+    </div>
+
+    <p>
+        Initial Quantity: {{ batch.initial_quantity }}
+    </p>
+
+    <button type="submit" class="form-button">
+        Save Changes
+    </button>
+
+    <a href="{{ url_for('inventory.inventory') }}">
+        Cancel
+    </a>
+
+</form>
+
+{% endblock %}
