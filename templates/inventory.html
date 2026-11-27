@@ -1,105 +1,109 @@
 {% extends "base.html" %}
-
-{% block title %}ExpiryAlert - Inventory Dashboard{% endblock %}
+{% block title %}ExpiryAlert - Inventory{% endblock %}
 
 {% block content %}
-
-<h1>ExpiryAlert Inventory Dashboard</h1>
-
-<p class="subtitle">
-    Monitor restaurant food inventory,
-    expiration dates, and product freshness.
-</p>
-
-<div style="margin-bottom: 25px;">
-    <a href="{{ url_for('inventory.add_batch') }}"
-       class="form-button"
-       style="text-decoration: none; display: inline-block;">
-        + Add Inventory Batch
-    </a>
+<div class="page-heading">
+  <div>
+    <h1>Inventory</h1>
+    <p class="subtitle">Track stock by branch and record usage or waste for each batch.</p>
+  </div>
+  <a class="form-button" href="{{ url_for('inventory.add_batch') }}"><span aria-hidden="true">+</span> Add inventory batch</a>
 </div>
 
-<div class="table-wrapper">
-    <table>
-        <thead>
-            <tr>
-                <th>Batch ID</th>
-                <th>Product</th>
-                <th>Received Date</th>
-                <th>Expiration Date</th>
-                <th>Initial Quantity</th>
-                <th>Remaining Quantity</th>
-                <th>Days Left</th>
-                <th>Expiration Status</th>
-                <th>Batch Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+<section class="inventory-panel" aria-labelledby="batch-heading">
+<div class="panel-heading">
+  <h2 id="batch-heading">Inventory batches</h2>
+  <span>{{ inventory|length }} {{ 'batch' if inventory|length == 1 else 'batches' }}</span>
+</div>
+<form class="inventory-filters" method="get" action="{{ url_for('inventory.inventory') }}">
+  <div class="form-group">
+    <label for="branch">Branch</label>
+    <select id="branch" name="branch">
+      <option value="0">All branches</option>
+      {% for row in branches %}
+      <option value="{{ row.branch_id }}" {% if row.branch_id == branch %}selected{% endif %}>
+        {{ row.branch_name }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
 
-        <tbody>
-            {% for item in inventory %}
-            <tr>
-                <td>{{ item.batch_id }}</td>
-                <td>{{ item.product_name }}</td>
-                <td>{{ item.received_date }}</td>
-                <td>{{ item.expiration_date }}</td>
-                <td>{{ item.initial_quantity }}</td>
-                <td>{{ item.remaining_quantity }}</td>
+  <div class="form-group">
+    <label for="q">Product name</label>
+    <input id="q" name="q" type="search" value="{{ search }}" maxlength="100" placeholder="Search products">
+  </div>
 
-                <td>
-                    {% if item.days_until_expiration < 0 %}
-                        Expired
-                    {% else %}
-                        {{ item.days_until_expiration }}
-                    {% endif %}
-                </td>
-
-                <td>
-                    {% if item.expiration_status == 'Expired' %}
-                        <span class="status expired">Expired</span>
-
-                    {% elif item.expiration_status == 'Approaching Expiration' %}
-                        <span class="status warning">
-                            Approaching Expiration
-                        </span>
-
-                    {% else %}
-                        <span class="status safe">Safe</span>
-                    {% endif %}
-                </td>
-
-                <td>{{ item.batch_status }}</td>
-                <td>
-    <a href="{{ url_for('inventory.edit_batch', batch_id=item.batch_id) }}"
-       class="form-button"
-       style="text-decoration: none; display: inline-block;">
-        Edit
-    </a>
-
-<form action="{{ url_for('inventory.delete_batch', batch_id=item.batch_id) }}"
-      method="POST"
-      style="display: inline;"
-      onsubmit="return confirm('Are you sure you want to delete this inventory batch?');">
-
-    <button type="submit" class="form-button"
-            style="background-color: #c0392b;">
-        Delete
-    </button>
-
+  <button class="form-button secondary" type="submit">Apply filters</button>
+  {% if branch or search %}
+  <a href="{{ url_for('inventory.inventory') }}">Clear filters</a>
+  {% endif %}
 </form>
 
-</td>
-            </tr>
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Product / Batch</th>
+        <th scope="col">Branch / Storage</th>
+        <th scope="col">Received</th>
+        <th scope="col">Expires</th>
+        <th scope="col">Remaining / Received</th>
+        <th scope="col">Status</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
 
-            {% else %}
-            <tr>
-                <td colspan="10" class="empty-message">
-                    No inventory records found.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <tbody>
+      {% for item in inventory %}
+      <tr>
+        <td><strong>{{ item.product_name }}</strong><span class="cell-detail">Batch #{{ item.batch_id }}</span></td>
+        <td>{{ item.branch_name }}<span class="cell-detail">{{ item.storage_name }}</span></td>
+        <td class="nowrap"><time datetime="{{ item.received_date }}">{{ item.received_date.strftime('%d %b %Y') }}</time></td>
+        <td class="nowrap">
+          <time datetime="{{ item.expiration_date }}">{{ item.expiration_date.strftime('%d %b %Y') }}</time>
+          {% if item.remaining_quantity and item.days_until_expiration == 0 %}
+            <span class="cell-detail">Today</span>
+          {% elif item.remaining_quantity and item.days_until_expiration > 0 %}
+            <span class="cell-detail">{{ item.days_until_expiration }} days left</span>
+          {% endif %}
+        </td>
+        <td class="nowrap"><strong>{{ item.remaining_quantity }} {{ item.measurement_unit }}</strong><span class="cell-detail">of {{ item.initial_quantity }} {{ item.measurement_unit }}</span></td>
+        <td>
+          {% if item.expiration_status == "Expired" %}
+          <span class="status expired">Expired</span>
+          {% elif item.expiration_status == "Approaching Expiration" %}
+          <span class="status warning">Approaching Expiration</span>
+          {% elif item.expiration_status == "Depleted" %}
+          <span class="status">Depleted</span>
+          {% else %}
+          <span class="status safe">Safe</span>
+          {% endif %}
+        </td>
+
+        <td><div class="inventory-actions">
+          <a class="row-action"
+             href="{{ url_for('operations.activity', batch_id=item.batch_id) }}">
+            Activity
+          </a>
+
+          <a class="row-action"
+             href="{{ url_for('inventory.edit_batch', batch_id=item.batch_id) }}">
+            Edit
+          </a>
+
+          <form method="post"
+                action="{{ url_for('inventory.delete_batch', batch_id=item.batch_id) }}"
+                onsubmit="return confirm('Delete this inventory batch?');">
+            {% include "csrf.html" %}
+            <button class="row-action inventory-delete" type="submit">Delete</button>
+          </form>
+        </div></td>
+      </tr>
+      {% else %}
+      <tr><td class="empty-message" colspan="7">No inventory batches match these filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
-
+</section>
 {% endblock %}

@@ -1,40 +1,39 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>{% block title %}ExpiryAlert{% endblock %}</title>
-
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ExpiryAlert{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v=5) }}">
 </head>
-
 <body>
-    <div class="container">
-
-        <header class="site-header">
-            <div class="brand">
-                <h2>ExpiryAlert</h2>
-                <p>Restaurant Food Inventory Management System</p>
-            </div>
-
-            <nav class="navigation">
-                <a href="{{ url_for('main.home') }}">Home</a>
-                <a href="{{ url_for('inventory.inventory') }}">Inventory</a>
-                <a href="{{ url_for('alerts.alerts') }}">Expiration Alerts</a>
-            </nav>
-        </header>
-
-        <main>
-            {% block content %}{% endblock %}
-        </main>
-
-        <footer class="footer">
-            ExpiryAlert - Restaurant Food Inventory Management System
-        </footer>
-
-    </div>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('main.home') }}">
+      <span class="brand-mark" aria-hidden="true"><span></span></span>
+      ExpiryAlert
+    </a>
+    {% set nav = [
+      ('Overview', 'main.home', 'main'),
+      ('Inventory', 'inventory.inventory', 'inventory'),
+      ('Products', 'operations.products', 'operations.products'),
+      ('Purchases', 'operations.purchases', 'operations.purchases'),
+      ('Expiration Alerts', 'alerts.alerts', 'alerts'),
+      ('Reports', 'operations.reports', 'operations.reports')
+    ] %}
+    <nav class="navigation" aria-label="Main navigation">
+      {% for label, endpoint, group in nav %}
+        {% set active = request.endpoint == group or request.blueprint == group or (group == 'inventory' and request.endpoint == 'operations.activity') %}
+        <a href="{{ url_for(endpoint) }}"{% if active %} aria-current="page"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </nav>
+  </header>
+  <main id="main" class="container">
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <p role="{{ 'status' if category == 'success' else 'alert' }}" class="notice {{ 'safe' if category == 'success' else 'expired' }}">{{ message }}</p>
+    {% endfor %}
+    {% block content %}{% endblock %}
+    <footer class="footer">ExpiryAlert <span>Restaurant inventory management</span></footer>
+  </main>
 </body>
 </html>

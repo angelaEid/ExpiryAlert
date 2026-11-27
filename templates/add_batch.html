@@ -1,94 +1,66 @@
-
 {% extends "base.html" %}
+{% block title %}ExpiryAlert - Add Inventory Batch{% endblock %}
 
 {% block content %}
-
 <h1>Add Inventory Batch</h1>
+<p class="subtitle">Receive stock from an existing purchase line.</p>
 
-<p class="subtitle">
-    Register newly received food inventory.
-</p>
+{% if purchase_items %}
+<form class="editor-form" method="post" action="{{ url_for('inventory.add_batch') }}">
+  {% include "csrf.html" %}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-        <div class="status {{ 'safe' if category == 'success' else 'expired' }}"
-             style="margin-bottom: 15px;">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endwith %}
+  <div class="form-group">
+    <label for="purchase_item_id">Purchase line</label>
+    <select id="purchase_item_id" name="purchase_item_id" required>
+      <option value="">Choose a purchase line</option>
+      {% for item in purchase_items %}
+      <option value="{{ item.purchase_item_id }}"
+              {% if request.form.get('purchase_item_id') == (item.purchase_item_id | string) %}selected{% endif %}>
+        #{{ item.purchase_item_id }} · {{ item.product_name }} · {{ item.branch_name }}
+        · {{ item.unreceived }} {{ item.measurement_unit }} unreceived
+      </option>
+      {% endfor %}
+    </select>
+  </div>
 
-<form method="POST" action="{{ url_for('inventory.add_batch') }}">
+  <div class="form-group">
+    <label for="storage_id">Storage location</label>
+    <select id="storage_id" name="storage_id" required>
+      <option value="">Choose storage in the purchase branch</option>
+      {% for location in storage_locations %}
+      <option value="{{ location.storage_id }}"
+              {% if request.form.get('storage_id') == (location.storage_id | string) %}selected{% endif %}>
+        {{ location.branch_name }} · {{ location.storage_name }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
 
-    <div class="form-group">
-        <label for="purchase_item_id">Purchase Item</label>
-        <select id="purchase_item_id" name="purchase_item_id" required>
-            <option value="">Select Purchase Item</option>
+  <div class="form-group">
+    <label for="received_date">Received date</label>
+    <input id="received_date" name="received_date" type="date"
+           value="{{ request.form.get('received_date', today) }}" required>
+  </div>
 
-            {% for item in purchase_items %}
-            <option value="{{ item.purchase_item_id }}">
-                {{ item.product_name }}
-                - Purchase Item #{{ item.purchase_item_id }}
-                (Quantity: {{ item.quantity }})
-            </option>
-            {% endfor %}
-        </select>
-    </div>
+  <div class="form-group">
+    <label for="expiration_date">Expiration date</label>
+    <input id="expiration_date" name="expiration_date" type="date"
+           value="{{ request.form.get('expiration_date', '') }}" required>
+  </div>
 
-    <div class="form-group">
-        <label for="storage_id">Storage Location</label>
-        <select id="storage_id" name="storage_id" required>
-            <option value="">Select Storage Location</option>
+  <div class="form-group">
+    <label for="initial_quantity">Quantity received</label>
+    <input id="initial_quantity" name="initial_quantity" type="number"
+           min="0.01" max="99999999.99" step="0.01"
+           value="{{ request.form.get('initial_quantity', '') }}" required>
+  </div>
 
-            {% for location in storage_locations %}
-            <option value="{{ location.storage_id }}">
-                {{ location.storage_name }}
-                ({{ location.storage_type }})
-            </option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="received_date">Received Date</label>
-        <input type="date"
-               id="received_date"
-               name="received_date"
-               value="{{ today }}"
-               required>
-    </div>
-
-    <div class="form-group">
-        <label for="expiration_date">Expiration Date</label>
-        <input type="date"
-               id="expiration_date"
-               name="expiration_date"
-               required>
-    </div>
-
-    <div class="form-group">
-        <label for="initial_quantity">Initial Quantity</label>
-        <input type="number"
-               id="initial_quantity"
-               name="initial_quantity"
-               min="0.01"
-               max="99999999.99"
-               step="0.01"
-               placeholder="Enter quantity"
-               required>
-    </div>
-
-    <div style="margin-top: 25px;">
-        <button type="submit" class="form-button">
-            Add Inventory Batch
-        </button>
-
-        <a href="{{ url_for('inventory.inventory') }}"
-           style="margin-left: 15px;">
-            Cancel
-        </a>
-    </div>
-
+  <button class="form-button" type="submit">Add Inventory Batch</button>
+  <a href="{{ url_for('inventory.inventory') }}">Cancel</a>
 </form>
-
+{% else %}
+<p>All existing purchase lines are fully received.</p>
+<a class="form-button" href="{{ url_for('operations.purchases') }}">Create a purchase</a>
+<a href="{{ url_for('inventory.inventory') }}">Back to Inventory</a>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% macro select_field(name, label, rows, key, display, required=true, selected="") %}
+<div class="form-group">
+  <label>{{ label }}
+    <select name="{{ name }}" {% if required %}required{% endif %}>
+      <option value="">Choose {{ label | lower }}</option>
+      {% for row in rows %}
+      <option value="{{ row[key] }}"{% if selected == row[key]|string %} selected{% endif %}>{{ row[display] }}</option>
+      {% endfor %}
+    </select>
+  </label>
+</div>
+{% endmacro %}
+
+{% macro data_table(rows) %}
+{% if rows %}
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        {% for key in rows[0] %}
+        <th scope="col">{{ key | replace('_', ' ') | capitalize }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        {% for value in row.values() %}
+        <td>{{ value if value is not none else '—' }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="empty-message empty-panel">No records yet.</p>
+{% endif %}
+{% endmacro %}
+
+{% block title %}{{ title }} | ExpiryAlert{% endblock %}
+
+{% block content %}
+<header class="workspace-heading">
+  <h1>{{ title }}</h1>
+  {% if section == "products" %}
+  <p class="subtitle">Manage your ingredient catalog, storage requirements, and supplier relationships.</p>
+  {% elif section == "purchases" %}
+  <p class="subtitle">Record what you ordered and review past purchases by branch and supplier.</p>
+  {% elif section == "reports" %}
+  <p class="subtitle">Review low stock and the cost of food waste by branch.</p>
+  {% endif %}
+</header>
+
+{% if section == "products" %}
+{% set register = request.form.get('action') != 'link' %}
+
+<div class="product-workspace">
+  <form class="editor-form workflow-card" method="post">
+    {% include "csrf.html" %}
+    <header class="workflow-header">
+      <h2>Add a product</h2>
+      <p>Set up an ingredient and choose when staff should receive a warning.</p>
+    </header>
+
+    <div class="workflow-body form-grid">
+      <div class="form-group">
+        <label>Product name <input name="product_name" maxlength="100" placeholder="e.g. Fresh basil" value="{{ request.form.get('product_name', '') if register else '' }}" required></label>
+      </div>
+      {{ select_field("category_id", "Category", categories, "category_id", "category_name", selected=request.form.get('category_id', '') if register else '') }}
+      <div class="form-group">
+        <label>Unit of measure <input name="measurement_unit" maxlength="30" placeholder="e.g. kg" value="{{ request.form.get('measurement_unit', '') if register else '' }}" required></label>
+      </div>
+      <div class="form-group">
+        <label>Storage requirements <span class="optional">Optional</span>
+          <input name="storage_requirements" maxlength="255" placeholder="e.g. Keep refrigerated" value="{{ request.form.get('storage_requirements', '') if register else '' }}">
+        </label>
+      </div>
+      <div class="form-group full-width">
+        <label>Description <span class="optional">Optional</span>
+          <textarea name="description" maxlength="2000" rows="2">{{ request.form.get('description', '') if register else '' }}</textarea>
+        </label>
+      </div>
+      <fieldset class="stock-settings full-width">
+        <legend>Stock thresholds</legend>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Reorder level
+              <input name="reorder_level" type="number" min="0" step="0.01" value="{{ request.form.get('reorder_level', '0') if register else '0' }}" required>
+            </label>
+          </div>
+          <div class="form-group">
+            <label>Days before expiry
+              <input name="days" type="number" min="0" max="36500" value="{{ request.form.get('days', '3') if register else '3' }}" required>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+    <footer class="workflow-footer"><button class="form-button" type="submit">Add product</button></footer>
+  </form>
+
+  <form class="editor-form workflow-card supplier-card" method="post">
+    {% include "csrf.html" %}
+    <input type="hidden" name="action" value="link">
+    <header class="workflow-header">
+      <h2>Link a supplier</h2>
+      <p>Make an existing product available to order from this supplier.</p>
+    </header>
+    <div class="workflow-body">
+      {{ select_field("supplier_id", "Supplier", suppliers, "supplier_id", "supplier_name", selected=request.form.get('supplier_id', '') if not register else '') }}
+      {{ select_field("product_id", "Product", rows, "product_id", "product_name", selected=request.form.get('product_id', '') if not register else '') }}
+    </div>
+    <footer class="workflow-footer"><button class="form-button secondary" type="submit">Link supplier</button></footer>
+  </form>
+</div>
+
+<h2>Product catalog</h2>
+{{ data_table(rows) }}
+
+{% elif section == "purchases" %}
+{% set submitted_products = request.form.getlist('product_id') %}
+{% set submitted_quantities = request.form.getlist('quantity') %}
+{% set submitted_costs = request.form.getlist('unit_cost') %}
+
+<form class="editor-form workflow-card purchase-form" method="post">
+  {% include "csrf.html" %}
+  <header class="workflow-header">
+    <h2>New purchase</h2>
+    <p>Choose the receiving branch and supplier, then enter the items ordered.</p>
+  </header>
+
+  <div class="workflow-body">
+    <div class="form-grid purchase-details">
+      {{ select_field("branch_id", "Branch", branches, "branch_id", "branch_name", selected=request.form.get('branch_id', '')) }}
+      {{ select_field("supplier_id", "Supplier", suppliers, "supplier_id", "supplier_name", selected=request.form.get('supplier_id', '')) }}
+      <div class="form-group">
+        <label>Purchase date <input type="date" name="purchase_date" value="{{ request.form.get('purchase_date', today) }}" required></label>
+      </div>
+    </div>
+
+    <h3 class="line-heading">Order items</h3>
+    {% for number in range(1, 6) %}
+      {% set index = loop.index0 %}
+      {% if number == 2 %}
+      <details class="extra-lines"{% if submitted_products[1:]|select|list or submitted_quantities[1:]|select|list or submitted_costs[1:]|select|list %} open{% endif %}>
+        <summary>Add more items <span>Up to 5 total</span></summary>
+      {% endif %}
+      <fieldset class="purchase-line">
+        <legend>Item {{ number }}</legend>
+        <div class="form-grid line-grid">
+          {{ select_field("product_id", "Supplier offer", offers, "product_id", "label", number == 1, submitted_products[index]|default('')) }}
+          <div class="form-group">
+            <label>Quantity
+              <input name="quantity" type="number" min="0.01" step="0.01"
+                     value="{{ submitted_quantities[index]|default('') }}" {% if number == 1 %}required{% endif %}>
+            </label>
+          </div>
+          <div class="form-group">
+            <label>Unit cost
+              <input name="unit_cost" type="number" min="0" step="0.01"
+                     value="{{ submitted_costs[index]|default('') }}" {% if number == 1 %}required{% endif %}>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+      {% if number == 5 %}</details>{% endif %}
+    {% endfor %}
+  </div>
+  <footer class="workflow-footer"><button class="form-button" type="submit">Save purchase</button></footer>
+</form>
+
+<h2>Purchase history</h2>
+{{ data_table(rows) }}
+
+{% elif section == "activity" %}
+
+<p>{{ batch.product_name }} · {{ batch.branch_name }} · Batch #{{ batch.batch_id }}</p>
+<p><strong>{{ batch.remaining_quantity }} {{ batch.measurement_unit }}</strong> remaining</p>
+
+<form class="editor-form" method="post">
+  {% include "csrf.html" %}
+  {{ select_field("employee_id", "Employee", employees, "employee_id", "full_name") }}
+
+  <div class="form-group">
+    <label>Action
+      <select name="action" required>
+        <option value="usage">Use stock</option>
+        <option value="adjust_in">Increase stock correction</option>
+        <option value="adjust_out">Decrease stock correction</option>
+        <option value="waste">Discard stock</option>
+      </select>
+    </label>
+  </div>
+  <div class="form-group">
+    <label>Quantity <input name="quantity" type="number" min="0.01" step="0.01" required></label>
+  </div>
+  <div class="form-group">
+    <label>Notes or required disposal reason <input name="notes" maxlength="255"></label>
+  </div>
+
+  <button class="form-button">Save activity</button>
+</form>
+
+<h2>Movement history</h2>
+{{ data_table(movements) }}
+
+<h2>Waste history</h2>
+{{ data_table(waste) }}
+
+{% elif section == "reports" %}
+
+<form method="get" class="form-group">
+  <label>Branch
+    <select name="branch">
+      <option value="0">All branches</option>
+      {% for row in branches %}
+      <option value="{{ row.branch_id }}" {% if row.branch_id == branch %}selected{% endif %}>
+        {{ row.branch_name }}
+      </option>
+      {% endfor %}
+    </select>
+  </label>
+  <button class="form-button">Filter</button>
+</form>
+
+<h2>Stock below reorder level</h2>
+{{ data_table(stock) }}
+
+<h2>Waste and estimated loss</h2>
+{{ data_table(waste) }}
+
+{% endif %}
+{% endblock %}

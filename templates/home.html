@@ -1,51 +1,27 @@
-
 {% extends "base.html" %}
-
-{% block title %}ExpiryAlert - Home{% endblock %}
-
+{% block title %}ExpiryAlert · Overview{% endblock %}
 {% block content %}
-
-<section class="home-intro">
-    <h1>Welcome to ExpiryAlert!</h1>
-
-    <p class="subtitle">
-        A restaurant food inventory management system
-        designed to monitor stock quantities, track
-        expiration dates, and identify food products
-        approaching expiration.
-    </p>
+<section class="hero">
+  <div class="hero-copy">
+    <h1>Keep your kitchen stocked and cut food waste.</h1>
+    <p>Track deliveries, check what’s expiring, and see where food waste is costing your kitchen.</p>
+    <div class="hero-actions">
+      <a class="form-button" href="{{ url_for('inventory.inventory') }}">View inventory <span aria-hidden="true">→</span></a>
+      <a class="text-link" href="{{ url_for('alerts.alerts') }}">Check expiration alerts</a>
+    </div>
+  </div>
+  <img class="hero-photo" src="{{ url_for('static', filename='images/kitchen-prep.webp') }}" alt="Fresh herbs and produce on a restaurant prep counter" fetchpriority="high">
 </section>
-
-<div class="feature-grid">
-
-    <a class="feature-card"
-       href="{{ url_for('inventory.inventory') }}">
-
-        <h3>Inventory Management</h3>
-
-        <p>
-            View food inventory batches, remaining
-            quantities, expiration dates, and
-            freshness statuses.
-        </p>
-
-        <span class="feature-link">View Inventory</span>
-    </a>
-
-    <a class="feature-card"
-       href="{{ url_for('alerts.alerts') }}">
-
-        <h3>Expiration Alerts</h3>
-
-        <p>
-            Monitor expiration warnings and
-            notification statuses to help reduce
-            food waste.
-        </p>
-
-        <span class="feature-link">View Alerts</span>
-    </a>
-
-</div>
-
+<section class="overview-work">
+  <div>
+    <h2>Kitchen operations</h2>
+    <div class="feature-grid">
+      <a class="feature-card" href="{{ url_for('inventory.add_batch') }}"><strong>Receive stock <span aria-hidden="true">↗</span></strong><span>Log a delivery against a purchase line.</span></a>
+      <a class="feature-card" href="{{ url_for('operations.purchases') }}"><strong>Manage purchases <span aria-hidden="true">↗</span></strong><span>Record supplier orders and review costs.</span></a>
+      <a class="feature-card" href="{{ url_for('operations.products') }}"><strong>Product catalog <span aria-hidden="true">↗</span></strong><span>Manage products, suppliers, and stock thresholds.</span></a>
+      <a class="feature-card" href="{{ url_for('operations.reports') }}"><strong>Stock and waste reports <span aria-hidden="true">↗</span></strong><span>Review low stock and waste costs by branch.</span></a>
+    </div>
+  </div>
+  <img class="produce-art" src="{{ url_for('static', filename='images/produce-crate.webp') }}" alt="" loading="lazy">
+</section>
 {% endblock %}
